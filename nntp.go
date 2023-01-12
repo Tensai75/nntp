@@ -656,6 +656,9 @@ func (c *Conn) Post(a *Article) error {
 
 // Quit sends the QUIT command and closes the connection to the server.
 func (c *Conn) Quit() error {
+	if c.close {
+		return nil
+	}
 	_, _, err := c.cmd(0, "QUIT")
 	c.conn.Close()
 	c.close = true
