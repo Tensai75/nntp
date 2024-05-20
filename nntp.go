@@ -12,7 +12,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"sort"
@@ -117,7 +116,7 @@ func (r *bodyReader) Read(p []byte) (n int, err error) {
 }
 
 func (r *bodyReader) discard() error {
-	_, err := ioutil.ReadAll(r)
+	_, err := io.ReadAll(r)
 	return err
 }
 
@@ -207,8 +206,8 @@ func newConn(c net.Conn) (res *Conn, err error) {
 // make the connection.
 //
 // Example:
-//   conn, err := nntp.Dial("tcp", "my.news:nntp")
 //
+//	conn, err := nntp.Dial("tcp", "my.news:nntp")
 func Dial(network, addr string) (*Conn, error) {
 	c, err := net.Dial(network, addr)
 	if err != nil {
@@ -475,10 +474,9 @@ func (c *Conn) Date() (time.Time, error) {
 // List returns a list of groups present on the server.
 // Valid forms are:
 //
-//   List() - return active groups
-//   List(keyword) - return different kinds of information about groups
-//   List(keyword, pattern) - filter groups against a glob-like pattern called a wildmat
-//
+//	List() - return active groups
+//	List(keyword) - return different kinds of information about groups
+//	List(keyword, pattern) - filter groups against a glob-like pattern called a wildmat
 func (c *Conn) List(a ...string) ([]string, error) {
 	if len(a) > 2 {
 		return nil, ProtocolError("List only takes up to 2 arguments")
@@ -510,7 +508,7 @@ func (c *Conn) Group(group string) (number, low, high int, err error) {
 	}
 
 	var n [3]int
-	for i, _ := range n {
+	for i := range n {
 		c, e := strconv.Atoi(ss[i])
 		if e != nil {
 			err = ProtocolError("bad group response: " + line)
@@ -610,11 +608,8 @@ func (c *Conn) Body(id string) (io.Reader, error) {
 	return c.body(), nil
 }
 
-// RawPost reads a text-formatted article from r and posts it to the server.
-func (c *Conn) RawPost(r io.Reader) error {
-	if _, _, err := c.cmd(3, "POST"); err != nil {
-		return err
-	}
+// sendLines sends the lines of a text-formatted article from r to the server.
+func (c *Conn) sendLines(r io.Reader) error {
 	br := bufio.NewReader(r)
 	eof := false
 	for {
@@ -642,7 +637,17 @@ func (c *Conn) RawPost(r io.Reader) error {
 			break
 		}
 	}
+	return nil
+}
 
+// RawPost reads a text-formatted article from r and posts it to the server.
+func (c *Conn) RawPost(r io.Reader) error {
+	if _, _, err := c.cmd(3, "POST"); err != nil {
+		return err
+	}
+	if err := c.sendLines(r); err != nil {
+		return err
+	}
 	if _, _, err := c.cmd(240, "."); err != nil {
 		return err
 	}

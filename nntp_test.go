@@ -9,7 +9,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 	"testing"
 	"time"
@@ -86,7 +85,7 @@ func TestBasics(t *testing.T) {
 	if err != nil {
 		t.Fatal("should be able to fetch the low article: " + err.Error())
 	}
-	body, err := ioutil.ReadAll(a.Body)
+	body, err := io.ReadAll(a.Body)
 	if err != nil {
 		t.Fatal("error reading reader: " + err.Error())
 	}
@@ -142,7 +141,7 @@ Body.
 	if err != nil {
 		t.Fatal("should be able to fetch the low article body" + err.Error())
 	}
-	if _, err = ioutil.ReadAll(r); err != nil {
+	if _, err = io.ReadAll(r); err != nil {
 		t.Fatal("error reading reader: " + err.Error())
 	}
 
