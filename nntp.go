@@ -659,6 +659,25 @@ func (c *Conn) Post(a *Article) error {
 	return c.RawPost(&articleReader{a: a})
 }
 
+// RawIHave reads a text-formatted article from r and presents it to the server with the IHAVE command.
+func (c *Conn) RawIHave(r io.Reader) error {
+	if _, _, err := c.cmd(3, "IHAVE"); err != nil {
+		return err
+	}
+	if err := c.sendLines(r); err != nil {
+		return err
+	}
+	if _, _, err := c.cmd(235, "."); err != nil {
+		return err
+	}
+	return nil
+}
+
+// IHave presents an article to the server with the IHAVE command.
+func (c *Conn) IHave(a *Article) error {
+	return c.RawIHave(&articleReader{a: a})
+}
+
 // Quit sends the QUIT command and closes the connection to the server.
 func (c *Conn) Quit() error {
 	_, _, err := c.cmd(0, "QUIT")

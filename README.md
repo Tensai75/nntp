@@ -3,6 +3,13 @@ nntp.go
 
 An NNTP (news) Client package for go (golang). Forked from [nntp-go](http://code.google.com/p/nntp-go/) to bring it up to date.
 
+Updates
+-------
+- added IHAVE command
+- use XOVER if OVER is unrecognized
+- set overview.Bytes to 0 if bytes value is empty
+- set overview.Lines to 0 if lines value is empty
+
 Example
 -------
 
