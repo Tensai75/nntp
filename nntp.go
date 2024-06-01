@@ -622,9 +622,7 @@ func (c *Conn) sendLines(r io.Reader) error {
 		if eof && len(line) == 0 {
 			break
 		}
-		if strings.HasSuffix(line, "\n") {
-			line = line[0 : len(line)-1]
-		}
+		line = strings.TrimSuffix(line, "\n")
 		var prefix string
 		if strings.HasPrefix(line, ".") {
 			prefix = "."
