@@ -370,8 +370,10 @@ type MessageOverview struct {
 // begin and end, inclusive.
 func (c *Conn) Overview(begin, end int) ([]MessageOverview, error) {
 	if code, _, err := c.cmd(224, "OVER %d-%d", begin, end); err != nil {
-		// if error is "400 Unrecognized command" try the XOVER command
-		if code == 400 {
+		// if error is "500 Unknown Command" (correct response according to RFC 3977), or
+		// if error is "400 Unrecognized command" or (wrong response sent by newshositng, eweka, tweaknews and maybe others...)
+		// try the XOVER command
+		if code == 500 || code == 400 {
 			if _, _, err := c.cmd(224, "XOVER %d-%d", begin, end); err != nil {
 				return nil, err
 			}
