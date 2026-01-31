@@ -429,6 +429,24 @@ func (c *Conn) Overview(begin, end int) ([]MessageOverview, error) {
 	return result, nil
 }
 
+// Overview returns a reader for overviews of all messages in the current group with message number between
+// begin and end, inclusive.
+func (c *Conn) OverviewReader(begin, end int) (*bufio.Reader, error) {
+	if code, _, err := c.cmd(224, "OVER %d-%d", begin, end); err != nil {
+		// if error is "500 Unknown Command" (correct response according to RFC 3977), or
+		// if error is "400 Unrecognized command" or (wrong response sent by newshositng, eweka, tweaknews and maybe others...)
+		// try the XOVER command
+		if code == 500 || code == 400 {
+			if _, _, err := c.cmd(224, "XOVER %d-%d", begin, end); err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	}
+	return c.r, nil
+}
+
 // parseGroups is used to parse a list of group states.
 func parseGroups(lines []string) ([]*Group, error) {
 	res := make([]*Group, 0)
