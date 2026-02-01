@@ -389,7 +389,7 @@ func (c *Conn) Overview(begin, end int) ([]MessageOverview, error) {
 
 	result := make([]MessageOverview, 0, len(lines))
 	for _, line := range lines {
-		overview, err := c.ParseOverviewLine(line)
+		overview, err := ParseOverviewLine(line)
 		if err != nil {
 			return nil, err
 		}
@@ -398,7 +398,7 @@ func (c *Conn) Overview(begin, end int) ([]MessageOverview, error) {
 	return result, nil
 }
 
-func (c *Conn) ParseOverviewLine(line string) (MessageOverview, error) {
+func ParseOverviewLine(line string) (MessageOverview, error) {
 	err := error(nil)
 	overview := MessageOverview{}
 	ss := strings.SplitN(strings.TrimSpace(line), "\t", 9)
