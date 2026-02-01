@@ -766,7 +766,7 @@ func readKeyValue(b *bufio.Reader) (key, value string, err error) {
 	}
 
 	key = string(line[0:i])
-	if strings.Index(key, " ") >= 0 {
+	if strings.Contains(key, " ") {
 		// Key field has space - no good.
 		goto Malformed
 	}
