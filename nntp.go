@@ -389,44 +389,53 @@ func (c *Conn) Overview(begin, end int) ([]MessageOverview, error) {
 
 	result := make([]MessageOverview, 0, len(lines))
 	for _, line := range lines {
-		overview := MessageOverview{}
-		ss := strings.SplitN(strings.TrimSpace(line), "\t", 9)
-		if len(ss) < 8 {
-			return nil, ProtocolError("short header listing line: " + line + strconv.Itoa(len(ss)))
-		}
-		overview.MessageNumber, err = strconv.Atoi(ss[0])
+		overview, err := c.ParseOverviewLine(line)
 		if err != nil {
-			return nil, ProtocolError("bad message number '" + ss[0] + "' in line: " + line)
+			return nil, err
 		}
-		overview.Subject = ss[1]
-		overview.From = ss[2]
-		overview.Date, err = parseDate(ss[3])
-		if err != nil {
-			// Inability to parse date is not fatal: the field in the message may be broken or missing.
-			overview.Date = time.Time{}
-		}
-		overview.MessageId = ss[4]
-		overview.References = strings.Split(ss[5], " ") // Message-Id's contain no spaces, so this is safe.
-		if ss[6] == "" {
-			overview.Bytes = 0
-		} else {
-			overview.Bytes, err = strconv.Atoi(ss[6])
-			if err != nil {
-				return nil, ProtocolError("bad byte count '" + ss[6] + "'in line:" + line)
-			}
-		}
-		if ss[7] == "" {
-			overview.Lines = 0
-		} else {
-			overview.Lines, err = strconv.Atoi(ss[7])
-			if err != nil {
-				return nil, ProtocolError("bad line count '" + ss[7] + "'in line:" + line)
-			}
-		}
-		overview.Extra = append([]string{}, ss[8:]...)
 		result = append(result, overview)
 	}
 	return result, nil
+}
+
+func (c *Conn) ParseOverviewLine(line string) (MessageOverview, error) {
+	err := error(nil)
+	overview := MessageOverview{}
+	ss := strings.SplitN(strings.TrimSpace(line), "\t", 9)
+	if len(ss) < 8 {
+		return MessageOverview{}, ProtocolError("short header listing line: " + line + strconv.Itoa(len(ss)))
+	}
+	overview.MessageNumber, err = strconv.Atoi(ss[0])
+	if err != nil {
+		return MessageOverview{}, ProtocolError("bad message number '" + ss[0] + "' in line: " + line)
+	}
+	overview.Subject = ss[1]
+	overview.From = ss[2]
+	overview.Date, err = parseDate(ss[3])
+	if err != nil {
+		// Inability to parse date is not fatal: the field in the message may be broken or missing.
+		overview.Date = time.Time{}
+	}
+	overview.MessageId = ss[4]
+	overview.References = strings.Split(ss[5], " ") // Message-Id's contain no spaces, so this is safe.
+	if ss[6] == "" {
+		overview.Bytes = 0
+	} else {
+		overview.Bytes, err = strconv.Atoi(ss[6])
+		if err != nil {
+			return MessageOverview{}, ProtocolError("bad byte count '" + ss[6] + "'in line:" + line)
+		}
+	}
+	if ss[7] == "" {
+		overview.Lines = 0
+	} else {
+		overview.Lines, err = strconv.Atoi(ss[7])
+		if err != nil {
+			return MessageOverview{}, ProtocolError("bad line count '" + ss[7] + "'in line:" + line)
+		}
+	}
+	overview.Extra = append([]string{}, ss[8:]...)
+	return overview, nil
 }
 
 // Overview returns a reader for overviews of all messages in the current group with message number between
