@@ -707,7 +707,7 @@ func (c *Conn) IHave(a *Article) error {
 
 // Quit sends the QUIT command and closes the connection to the server.
 func (c *Conn) Quit() error {
-	_, _ = io.ReadAll(c.r)
+	c.r.Discard(c.r.Buffered())
 	_, _, err := c.cmd(0, "QUIT")
 	c.conn.Close()
 	c.close = true
